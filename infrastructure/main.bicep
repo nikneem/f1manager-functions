@@ -95,7 +95,7 @@ module functionAppModule 'Web/sites.bicep' = {
     appServicePlanId: appServicePlanModule.outputs.id
     webAppName: webAppName
     kind: 'functionapp'
-    alwaysOn: false
+    alwaysOn: true
   }
 }
 
