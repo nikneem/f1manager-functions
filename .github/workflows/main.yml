@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 3.1.x
+      - name: Restore dependencies
+        run: dotnet restore ./src
+      - name: Build
+        run: dotnet build ./src --no-restore
+      - name: Test
+        run: dotnet test ./src --no-build --verbosity normal
+      - name: Publish
+        run: dotnet publish ./src/F1Manager.Functions/F1Manager.Functions.csproj -c Release -o ./published --no-restore --nologo
+      - name: "Zip published content"
+        uses: papeloto/action-zip@v1
+        with:
+          files: ./published/
+          recursive: true
+          dest: artifact.zip
+      - name: Publish Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: api-artifact
+          path: artifact.zip
