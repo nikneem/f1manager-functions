@@ -1,11 +1,12 @@
+param systemName string = 'f1man'
 @allowed([
   'dev'
   'test'
   'acc'
   'prod'
 ])
-param environmentSlot string = 'prod'
-param system string
+param environmentName string = 'prod'
+param azureRegion string = 'weu'
 
 @allowed([
   'standard'
@@ -13,7 +14,7 @@ param system string
 ])
 param sku string = 'standard'
 
-var keyVaultName = '${system}-${environmentSlot}-kv'
+var keyVaultName = '${systemName}-${environmentName}-${azureRegion}-kv'
 
 resource keyVault 'Microsoft.KeyVault/vaults@2021-04-01-preview' = {
   name: keyVaultName
@@ -30,4 +31,4 @@ resource keyVault 'Microsoft.KeyVault/vaults@2021-04-01-preview' = {
 }
 
 output keyVaultName string = keyVault.name
-output keyVaultUrl string = 'https://${keyVault.name}.vault.azure.net'
+output keyVaultUrl string = keyVault.properties.vaultUri

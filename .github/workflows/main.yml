@@ -33,7 +33,7 @@ jobs:
       - name: Publish Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: api-artifact
+          name: functions-artifact
           path: artifact.zip
 
   publish-bicep:
@@ -70,3 +70,26 @@ jobs:
         with:
           azcliversion: 2.23.0
           inlineScript: az deployment group create --resource-group ${{ secrets.AZURE_DEV_RESOURCE_GROUP }} --template-file ./infrastructure/main.bicep --mode Incremental  --parameters sqlServerPassword=${{ steps.getsecretsdevinc.outputs.SqlServerPassword }}
+
+  deploy-functions-dev:
+    needs: [compile-functions-app, infrastructure-incremental-dev]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: functions-artifact
+      - name: Get FunctionApp publish profile
+        id: publishprofile
+        uses: aliencube/publish-profile-actions@v1
+        env:
+          AZURE_CREDENTIALS: ${{ secrets.AZURE_DEV }}
+        with:
+          resourceGroupName: ${{ secrets.AZURE_DEV_RESOURCE_GROUP }}
+          appName: "f1func-dev-weu-app"
+      - name: "Deploy web app"
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: "f1func-dev-weu-app"
+          publish-profile: ${{ steps.publishprofile.outputs.profile }}
+          package: "artifact.zip"

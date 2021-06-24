@@ -14,6 +14,7 @@ param developerObjectIds array = [
   'ad7deb2e-6a44-4309-a037-6f0ff6b273b2'
   'f2256599-cbea-44ae-aa54-2daafaac605a'
 ]
+var webAppName = '${systemName}-${environmentName}-${azureRegion}-app'
 
 resource webApiStorageAccount 'Microsoft.Storage/storageAccounts@2021-04-01' existing = {
   name: 'f1mandevweu'
@@ -23,24 +24,27 @@ resource webApiStorageAccount 'Microsoft.Storage/storageAccounts@2021-04-01' exi
 module storage 'Storage/storageAccounts.bicep' = {
   name: 'storageDeploy'
   params: {
-    environmentSlot: environmentName
-    system: systemName
+    environmentName: environmentName
+    systemName: systemName
+    azureRegion: azureRegion
   }
 }
 
 module applicationInsights 'Insights/components.bicep' = {
   name: 'applicationInsightsDeploy'
   params: {
-    environmentSlot: environmentName
-    system: systemName
+    environmentName: environmentName
+    systemName: systemName
+    azureRegion: azureRegion
   }
 }
 
 module keyVault 'KeyVault/vaults.bicep' = {
   name: 'keyVaultDeploy'
   params: {
-    environmentSlot: environmentName
-    system: systemName
+    environmentName: environmentName
+    systemName: systemName
+    azureRegion: azureRegion
   }
 }
 
@@ -68,11 +72,12 @@ module externalSecretsModule 'KeyVault/vaults/secret.bicep' = {
   }
 }
 
-module appServicePlan 'Web/serverfarms.bicep' = {
-  name: 'appServicePlanDeploy'
+module appServicePlanModule 'Web/serverfarms.bicep' = {
+  name: 'appServicePlanModule'
   params: {
-    environmentSlot: environmentName
-    system: systemName
+    environmentName: environmentName
+    systemName: systemName
+    azureRegion: azureRegion
     kind: 'functionapp'
     sku: {
       name: 'F1'
@@ -81,33 +86,28 @@ module appServicePlan 'Web/serverfarms.bicep' = {
   }
 }
 
-resource functionApp 'Microsoft.Web/sites@2020-12-01' = {
+module functionAppModule 'Web/sites.bicep' = {
   dependsOn: [
-    appServicePlan
-    applicationInsights
+    appServicePlanModule
     storage
   ]
-  name: '${systemName}-${environmentName}-app'
-  location: resourceGroup().location
-  kind: 'functionapp'
-  properties: {
-    serverFarmId: appServicePlan.outputs.id
-    httpsOnly: true
-    clientAffinityEnabled: false
-  }
-  identity: {
-    type: 'SystemAssigned'
+  name: 'functionAppModule'
+  params: {
+    appServicePlanId: appServicePlanModule.outputs.id
+    webAppName: webAppName
+    kind: 'functionapp'
+    alwaysOn: false
   }
 }
 
 resource config 'Microsoft.Web/sites/config@2020-12-01' = {
   dependsOn: [
     keyVaultAccessPolicy
-    functionApp
+    functionAppModule
     secretsModule
     externalSecretsModule
   ]
-  name: '${functionApp.name}/web'
+  name: '${webAppName}/web'
   properties: {
     appSettings: [
       {
@@ -146,11 +146,11 @@ module keyVaultAccessPolicy 'KeyVault/vaults/accessPolicies.bicep' = {
   name: 'keyVaultAccessPolicyDeploy'
   dependsOn: [
     keyVault
-    functionApp
+    functionAppModule
   ]
   params: {
     keyVaultName: keyVault.outputs.keyVaultName
-    principalId: functionApp.identity.principalId
+    principalId: functionAppModule.outputs.servicePrincipal
   }
 }
 

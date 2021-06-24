@@ -1,13 +1,14 @@
+param systemName string = 'f1man'
 @allowed([
   'dev'
   'test'
   'acc'
   'prod'
 ])
-param environmentSlot string = 'prod'
-param system string
+param environmentName string = 'prod'
+param azureRegion string = 'weu'
 
-var applicationInsightsName = '${system}-${environmentSlot}-ai'
+var applicationInsightsName = '${systemName}-${environmentName}-${azureRegion}-ai'
 
 resource applicationInsights 'Microsoft.Insights/components@2020-02-02-preview' = {
   kind: 'web'

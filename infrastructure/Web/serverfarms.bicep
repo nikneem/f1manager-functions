@@ -1,11 +1,13 @@
+param systemName string = 'f1man'
 @allowed([
   'dev'
   'test'
   'acc'
   'prod'
 ])
-param environmentSlot string = 'prod'
-param system string
+param environmentName string = 'prod'
+param azureRegion string = 'weu'
+
 @allowed([
   'functionapp'
   'linux'
@@ -14,11 +16,11 @@ param system string
 param kind string = 'app'
 
 param sku object = {
-  name: 'Y1'
-  capacity: 0
+  name: 'B1'
+  capacity: 1
 }
 
-var servicePlanName = toLower('${system}-${environmentSlot}-serviceplan')
+var servicePlanName = toLower('${systemName}-${environmentName}-${azureRegion}-plan')
 
 resource appFarm 'Microsoft.Web/serverfarms@2020-12-01' = {
   name: servicePlanName

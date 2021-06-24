@@ -1,11 +1,12 @@
+param systemName string = 'f1man'
 @allowed([
   'dev'
   'test'
   'acc'
   'prod'
 ])
-param environmentSlot string = 'prod'
-param system string
+param environmentName string = 'prod'
+param azureRegion string = 'weu'
 
 @allowed([
   'Standard'
@@ -25,7 +26,7 @@ param skuTier string = 'Standard'
 ])
 param skuName string = 'Standard_LRS'
 
-var storageAccountName = toLower('${system}${environmentSlot}')
+var storageAccountName = '${systemName}${environmentName}${azureRegion}'
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2021-02-01' = {
   name: storageAccountName
@@ -45,3 +46,4 @@ output secret array = [
   }
 ]
 output secretName string = storageAccountName
+output storageAccountName string = storageAccountName
