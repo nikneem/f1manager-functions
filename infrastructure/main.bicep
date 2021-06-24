@@ -21,8 +21,8 @@ resource webApiStorageAccount 'Microsoft.Storage/storageAccounts@2021-04-01' exi
   scope: resourceGroup('F1Manager-Dev-Api')
 }
 
-module storage 'Storage/storageAccounts.bicep' = {
-  name: 'storageDeploy'
+module storageModule 'Storage/storageAccounts.bicep' = {
+  name: 'storageModule'
   params: {
     environmentName: environmentName
     systemName: systemName
@@ -57,7 +57,7 @@ module secretsModule 'KeyVault/vaults/secrets.bicep' = {
   name: 'secretsModule'
   params: {
     keyVault: keyVault.outputs.keyVaultName
-    secrets: storage.outputs.secret
+    secrets: storageModule.outputs.secret
   }
 }
 module externalSecretsModule 'KeyVault/vaults/secret.bicep' = {
@@ -73,6 +73,9 @@ module externalSecretsModule 'KeyVault/vaults/secret.bicep' = {
 }
 
 module appServicePlanModule 'Web/serverfarms.bicep' = {
+  dependsOn: [
+    storageModule
+  ]
   name: 'appServicePlanModule'
   params: {
     environmentName: environmentName
@@ -89,7 +92,7 @@ module appServicePlanModule 'Web/serverfarms.bicep' = {
 module functionAppModule 'Web/sites.bicep' = {
   dependsOn: [
     appServicePlanModule
-    storage
+    storageModule
   ]
   name: 'functionAppModule'
   params: {
@@ -116,7 +119,7 @@ resource config 'Microsoft.Web/sites/config@2020-12-01' = {
       }
       {
         name: 'AzureWebJobsStorage'
-        value: '@Microsoft.KeyVault(SecretUri=${keyVault.outputs.keyVaultUrl}/secrets/${storage.outputs.secretName})'
+        value: '@Microsoft.KeyVault(SecretUri=${keyVault.outputs.keyVaultUrl}/secrets/${storageModule.outputs.secretName})'
       }
       {
         name: 'FUNCTIONS_EXTENSION_VERSION'
@@ -128,7 +131,7 @@ resource config 'Microsoft.Web/sites/config@2020-12-01' = {
       }
       {
         name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'
-        value: '@Microsoft.KeyVault(SecretUri=${keyVault.outputs.keyVaultUrl}/secrets/${storage.outputs.secretName})'
+        value: '@Microsoft.KeyVault(SecretUri=${keyVault.outputs.keyVaultUrl}/secrets/${storageModule.outputs.secretName})'
       }
       {
         name: 'ComponentImagesStorageAccount'
