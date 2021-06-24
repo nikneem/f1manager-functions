@@ -82,10 +82,6 @@ module appServicePlanModule 'Web/serverfarms.bicep' = {
     systemName: systemName
     azureRegion: azureRegion
     kind: 'functionapp'
-    sku: {
-      name: 'F1'
-      capacity: 0
-    }
   }
 }
 

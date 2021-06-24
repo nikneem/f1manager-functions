@@ -15,7 +15,7 @@ namespace F1Manager.Functions.Functions.Uploads
     public static class ResizeUploadedImages
     {
         [FunctionName("ResizeUploadedImages")]
-        public static async Task Run([BlobTrigger("uploads/{name}", Connection = "AzureWebJobsStorage")] CloudBlockBlob blob, string name, ILogger log)
+        public static async Task Run([BlobTrigger("uploads/{name}", Connection = "ComponentImagesStorageAccount")] CloudBlockBlob blob, string name, ILogger log)
         {
 
             var storageAccountConnectionString = Environment.GetEnvironmentVariable("ComponentImagesStorageAccount");
