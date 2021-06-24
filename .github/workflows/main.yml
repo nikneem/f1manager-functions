@@ -69,7 +69,7 @@ jobs:
         uses: Azure/cli@1.0.4
         with:
           azcliversion: 2.23.0
-          inlineScript: az deployment group create --resource-group ${{ secrets.AZURE_DEV_RESOURCE_GROUP }} --template-file ./infrastructure/main.bicep --mode Incremental  --parameters sqlServerPassword=${{ steps.getsecretsdevinc.outputs.SqlServerPassword }}
+          inlineScript: az deployment group create --resource-group ${{ secrets.AZURE_DEV_RESOURCE_GROUP }} --template-file ./infrastructure/main.bicep --mode Incremental
 
   deploy-functions-dev:
     needs: [compile-functions-app, infrastructure-incremental-dev]
